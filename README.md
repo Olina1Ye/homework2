@@ -226,7 +226,7 @@ python app.py
 pip install gunicorn
 gunicorn -w 4 -b 0.0.0.0:5000 app:app
 ---
-
+```
 **注意**: 这是一个演示项目，生产环境使用前请确保：
 - 修改默认密钥
 - 配置安全的数据库
