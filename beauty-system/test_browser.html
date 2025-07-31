@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>后台功能测试</title>
+</head>
+<body>
+    <h1>后台功能测试</h1>
+    
+    <h2>测试添加商品</h2>
+    <button onclick="testAddProduct()">测试添加商品</button>
+    
+    <h2>测试编辑商品</h2>
+    <button onclick="testEditProduct()">测试编辑商品</button>
+    
+    <h2>测试获取商品</h2>
+    <button onclick="testGetProduct()">测试获取商品</button>
+    
+    <div id="result"></div>
+    
+    <script>
+        function testAddProduct() {
+            const productData = {
+                'name': '浏览器测试商品',
+                'price': 99.99,
+                'image': '/static/images/test.jpg',
+                'description': '这是浏览器测试商品',
+                'category': '彩妆',
+                'stock': 100,
+                'brand': 'Test Brand',
+                'origin': '中国',
+                'shelf_life': '2年',
+                'net_weight': '30ml',
+                'ingredients': '测试成分',
+                'usage': '测试使用方法'
+            };
+            
+            fetch('/admin/add_product', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(productData)
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('result').innerHTML = 
+                    `<p>添加商品结果: ${JSON.stringify(data)}</p>`;
+            })
+            .catch(error => {
+                document.getElementById('result').innerHTML = 
+                    `<p>添加商品错误: ${error}</p>`;
+            });
+        }
+        
+        function testEditProduct() {
+            const editData = {
+                'name': '修改后的浏览器测试商品',
+                'price': 88.88,
+                'image': '/static/images/test.jpg',
+                'description': '这是修改后的浏览器测试商品',
+                'category': '护肤',
+                'stock': 150,
+                'brand': 'Modified Brand',
+                'origin': '中国',
+                'shelf_life': '3年',
+                'net_weight': '50ml',
+                'ingredients': '修改后的成分',
+                'usage': '修改后的使用方法'
+            };
+            
+            fetch('/admin/edit_product/2', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(editData)
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('result').innerHTML = 
+                    `<p>编辑商品结果: ${JSON.stringify(data)}</p>`;
+            })
+            .catch(error => {
+                document.getElementById('result').innerHTML = 
+                    `<p>编辑商品错误: ${error}</p>`;
+            });
+        }
+        
+        function testGetProduct() {
+            fetch('/admin/get_product/2')
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('result').innerHTML = 
+                    `<p>获取商品结果: ${JSON.stringify(data)}</p>`;
+            })
+            .catch(error => {
+                document.getElementById('result').innerHTML = 
+                    `<p>获取商品错误: ${error}</p>`;
+            });
+        }
+    </script>
+</body>
+</html> 

@@ -1,0 +1,326 @@
+<html lang="zh-CN"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>结算 - 美妆商城</title>
+    <link rel="stylesheet" href="https://cdn.tailwindcss.com">
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <style>
+        /* 核心布局样式 - 强制生效 */
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 16px;
+        }
+        
+        .product-container {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            margin: 0 auto 24px !important;
+            padding: 16px !important;
+            max-width: 800px !important;
+        }
+        
+        .product-image {
+            width: 120px !important;
+            height: 120px !important;
+            object-fit: cover !important;
+            border-radius: 4px !important;
+        }
+        
+        .product-divider {
+            width: 1px !important;
+            height: 80px !important;
+            background-color: #e5e7eb !important;
+            margin: 0 32px !important;
+        }
+        
+        .product-details {
+            flex: 0 0 auto !important;
+            padding: 16px 0 !important;
+            text-align: left !important;
+        }
+        
+        .product-details h3 {
+            font-weight: bold !important;
+            font-size: 18px !important;
+            margin: 0 0 12px 0 !important;
+        }
+        
+        .product-details .price {
+            color: #e11d48 !important;
+            font-size: 20px !important;
+            margin: 0 0 12px 0 !important;
+            font-weight: 500 !important;
+        }
+        
+        .product-details .quantity {
+            color: #6b7280 !important;
+            margin: 0 !important;
+        }
+
+        /* 收货地址表单样式 */
+        .address-form {
+            max-width: 500px !important;
+            margin: 0 auto !important;
+            padding: 0 16px !important;
+        }
+        
+        .address-form .form-group {
+            margin-bottom: 1.5rem !important;
+        }
+        
+        .address-form label {
+            display: block !important;
+            text-align: center !important;
+            margin-bottom: 0.5rem !important;
+            font-weight: 500 !important;
+        }
+        
+        .address-form input,
+        .address-form textarea {
+            width: 100% !important;
+            padding: 0.75rem !important;
+            border: 1px solid #d1d5db !important;
+            border-radius: 6px !important;
+            text-align: center !important;
+            font-size: 1rem !important;
+        }
+        
+        .address-form textarea {
+            min-height: 100px !important;
+            resize: vertical !important;
+        }
+
+        /* 支付区域样式 - 与收货地址对齐 */
+        .payment-section {
+            max-width: 500px !important; /* 与收货地址宽度一致 */
+            margin: 0 auto !important;
+            padding: 0 16px !important; /* 与收货地址内边距一致 */
+        }
+        
+        .payment-summary {
+            max-width: 400px !important;
+            margin: 0 auto 5rem !important;
+        }
+        
+        .payment-methods {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 0.75rem !important;
+            margin-bottom: 2rem !important;
+            max-width: 400px !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+        }
+        
+        .payment-methods label {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 0.5rem !important;
+            padding: 0.75rem !important;
+            border: 1px solid #e5e7eb !important;
+            border-radius: 6px !important;
+            cursor: pointer !important;
+        }
+        
+        .pay-button-container {
+            display: flex !important;
+            justify-content: center !important;
+            padding: 0 16px !important;
+        }
+        
+        .pay-button {
+            width: 100% !important;
+            max-width: 400px !important; /* 与支付方式区域宽度一致 */
+            padding: 0.75rem 1.5rem !important;
+            background-color: #e11d48 !important;
+            color: white !important;
+            border: none !important;
+            border-radius: 6px !important;
+            font-size: 1.1rem !important;
+            font-weight: 600 !important;
+            cursor: pointer !important;
+            transition: background-color 0.2s !important;
+        }
+        
+        .pay-button:hover {
+            background-color: #be123c !important;
+        }
+
+        /* 左右两栏容器 */
+        .checkout-columns {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            justify-content: center;
+        }
+        
+        .order-column, .payment-column {
+            flex: 1;
+            min-width: 300px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- 导航栏 -->
+    <nav class="bg-white shadow-md">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <a href="{{ url_for('index') }}" class="text-xl font-bold text-pink-600">美妆商城</a>
+            
+            <div class="flex items-center space-x-4">
+                <a href="{{ url_for('cart') }}" class="flex items-center">
+                    <i class="fa fa-shopping-cart mr-1"></i> 购物车
+                </a>
+                
+                {% if 'user_id' in session %}
+                <span>欢迎，{{ session.username }}</span>
+                <a href="{{ url_for('logout') }}" class="text-pink-600">退出</a>
+                {% else %}
+                <a href="{{ url_for('login') }}" class="text-pink-600">登录</a>
+                <a href="{{ url_for('register') }}" class="bg-pink-600 text-white px-3 py-1 rounded">注册</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容 -->
+    <div class="main-content py-8">
+        <h1 class="text-2xl font-bold mb-8 text-center">订单结算</h1>
+        
+        <div class="checkout-columns">
+            <!-- 订单信息栏 -->
+            <div class="order-column bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-bold mb-6 border-b pb-2 text-center">订单信息</h2>
+                
+                <!-- 产品信息：居中显示，图片左文字右带分割线 -->
+                <div class="product-container">
+                    <img src="{{ url_for('static', filename=product.image) }}" alt="{{ product.name }}" class="product-image">
+                    <div class="product-divider"></div>
+                    <div class="product-details">
+                        <h3>{{ product.name }}</h3>
+                        <p class="price">¥{{ product.price }}</p>
+                        <p class="quantity">数量: {{ quantity }}</p>
+                    </div>
+                </div>
+
+                <h2 class="text-xl font-bold mb-6 border-b pb-2 text-center">收货地址</h2>
+                <form id="addressForm" class="address-form">
+                    <div class="form-group">
+                        <label for="recipient">收件人</label>
+                        <input type="text" id="recipient" name="recipient" required="">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="phone">联系电话</label>
+                        <input type="tel" id="phone" name="phone" required="">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="address">详细地址</label>
+                        <textarea id="address" name="address" required=""></textarea>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- 支付信息栏 -->
+            <div class="payment-column bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-bold mb-6 border-b pb-2 text-center">支付信息</h2>
+                
+                <div class="payment-summary space-y-3">
+                    <div class="flex justify-between">
+                        <span>商品单价</span>
+                        <span>¥{{ product.price }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>数量</span>
+                        <span>{{ quantity }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>运费</span>
+                        <span>¥0.00</span>
+                    </div>
+                    <div class="flex justify-between font-bold text-lg pt-2 border-t">
+                        <span>总计</span>
+                        <span class="text-pink-600">¥{{ total_price }}</span>
+                    </div>
+                </div>
+                
+                <h2 class="text-xl font-bold mb-6 border-b pb-2 text-center">支付方式</h2>
+                <div class="payment-methods">
+                    <label>
+                        <input type="radio" name="payment" value="alipay" checked="">
+                        <i class="fa fa-credit-card"></i> 支付宝
+                    </label>
+                    <label>
+                        <input type="radio" name="payment" value="wechat">
+                        <i class="fa fa-wechat"></i> 微信支付
+                    </label>
+                    <label>
+                        <input type="radio" name="payment" value="card">
+                        <i class="fa fa-credit-card"></i> 银行卡支付
+                    </label>
+                </div>
+                
+                <div class="pay-button-container">
+                    <button id="payButton" class="pay-button">
+                        确认支付
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('payButton').addEventListener('click', function() {
+            const recipient = document.querySelector('input[name="recipient"]').value;
+            const phone = document.querySelector('input[name="phone"]').value;
+            const address = document.querySelector('textarea[name="address"]').value;
+            
+            if (!recipient || !phone || !address) {
+                alert('请填写完整的收货信息');
+                return;
+            }
+            
+            this.innerHTML = '<i class="fa fa-spinner fa-spin mr-2"></i> 处理中...';
+            this.disabled = true;
+            
+            setTimeout(() => {
+                fetch('/process_payment/{{ product.id }}/{{ quantity }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({
+                        recipient: recipient,
+                        phone: phone,
+                        address: address,
+                        payment_method: document.querySelector('input[name="payment"]:checked').value
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert(data.message);
+                        window.location.href = data.redirect_url;
+                    } else {
+                        alert(data.message);
+                        this.innerHTML = '确认支付';
+                        this.disabled = false;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('支付失败，请重试');
+                    this.innerHTML = '确认支付';
+                    this.disabled = false;
+                });
+            }, 1500);
+        });
+    </script>
+
+
+    </body></html>

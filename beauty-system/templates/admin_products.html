@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.2/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <title>商品管理 - 后台管理系统</title>
+    <style>
+        .sidebar {
+            background: #1f2937;
+            min-height: 100vh;
+            width: 250px;
+            position: fixed;
+            left: 0;
+            top: 0;
+        }
+        .main-content {
+            margin-left: 250px;
+            min-height: 100vh;
+            background: #f8fafc;
+        }
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: #d1d5db;
+            text-decoration: none;
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+        }
+        .nav-link:hover {
+            background: #374151;
+            color: white;
+            border-left-color: #3b82f6;
+        }
+        .nav-link.active {
+            background: #374151;
+            color: white;
+            border-left-color: #3b82f6;
+        }
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e5e7eb;
+        }
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+        .btn-success {
+            background: #10b981;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .btn-success:hover {
+            background: #059669;
+        }
+        .product-image {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- 侧边栏 -->
+    <div class="sidebar">
+        <div class="p-6">
+            <h1 class="text-white text-xl font-bold">后台管理系统</h1>
+        </div>
+        <nav class="mt-6">
+            <a href="{{ url_for('admin_dashboard') }}" class="nav-link">
+                仪表板
+            </a>
+            <a href="{{ url_for('admin_products') }}" class="nav-link active">
+                商品管理
+            </a>
+            <a href="{{ url_for('admin_orders') }}" class="nav-link">
+                订单管理
+            </a>
+            <a href="{{ url_for('admin_users') }}" class="nav-link">
+                用户管理
+            </a>
+            <!-- 分类管理菜单项已移除 -->
+            <a href="{{ url_for('index') }}" class="nav-link">
+                返回前台
+            </a>
+        </nav>
+    </div>
+
+    <!-- 主内容区域 -->
+    <div class="main-content">
+        <!-- 顶部导航 -->
+        <div class="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
+            <div class="flex justify-between items-center">
+                <h2 class="text-2xl font-bold text-gray-800">商品管理</h2>
+                <div class="flex items-center space-x-4">
+                    <!-- 顶部添加商品弹窗已移除 -->
+                    <span class="text-gray-600">欢迎，{{ session.username }}</span>
+                    <a href="{{ url_for('logout') }}" class="text-red-500 hover:text-red-700">
+                        <i class="fa fa-sign-out mr-1"></i>退出
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 商品列表 -->
+        <div class="p-6">
+            <div class="flex flex-col space-y-8">
+                <div class="flex-1">
+                    <div class="table-container">
+                        <div class="px-6 py-4 border-b border-gray-200">
+                            <h3 class="text-lg font-semibold text-gray-800">商品列表</h3>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">图片</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">商品名称</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">分类</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">价格</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">库存</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200">
+                                    {% for product in products %}
+                                    <tr data-product-id="{{ product.id }}">
+                                        <td class="px-6 py-4">
+                                            <img src="{{ url_for('static', filename=product.image) }}" alt="{{ product.name }}" class="product-image">
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-gray-900">{{ product.name }}</td>
+                                        <td class="px-6 py-4 text-sm text-gray-900">{{ product.category }}</td>
+                                        <td class="px-6 py-4 text-sm text-gray-900">
+                                            <input type="number" min="0" step="0.01" value="{{ product.price }}" class="price-input" style="width:80px;">
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-gray-900">
+                                            <input type="number" min="0" step="1" value="{{ product.stock }}" class="stock-input" style="width:60px;">
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-gray-900">
+                                            <button onclick="deleteProduct({{ product.id }})" class="btn-danger">
+                                                <i class="fa fa-trash mr-1"></i>删除
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="w-full bg-white shadow-lg rounded-lg p-6">
+                    <div class="flex justify-end mb-4">
+                        <button id="saveAllBtn" class="btn-primary px-6 py-2">保存</button>
+                    </div>
+                    <h3 class="text-lg font-semibold mb-4">添加商品</h3>
+                    <form id="addProductForm">
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium mb-1">商品名称</label>
+                            <input type="text" name="name" required class="w-full px-2 py-1 border rounded">
+                        </div>
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium mb-1">分类</label>
+                            <select name="category" required class="w-full px-2 py-1 border rounded">
+                                <option value="">选择分类</option>
+                                <option value="彩妆">彩妆</option>
+                                <option value="护肤">护肤</option>
+                                <option value="香水">香水</option>
+                                <option value="美妆工具">美妆工具</option>
+                                <option value="男士美妆">男士美妆</option>
+                            </select>
+                        </div>
+                        <div class="mb-3 flex space-x-2">
+                            <div class="flex-1">
+                                <label class="block text-sm font-medium mb-1">价格</label>
+                                <input type="number" name="price" step="0.01" required class="w-full px-2 py-1 border rounded">
+                            </div>
+                            <div class="flex-1">
+                                <label class="block text-sm font-medium mb-1">库存</label>
+                                <input type="number" name="stock" required class="w-full px-2 py-1 border rounded">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium mb-1">图片URL</label>
+                            <input type="text" name="image" required class="w-full px-2 py-1 border rounded" placeholder="images/xxx.jpg">
+                        </div>
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium mb-1">描述</label>
+                            <textarea name="description" rows="2" class="w-full px-2 py-1 border rounded"></textarea>
+                        </div>
+                        <div class="flex justify-end space-x-2 mt-4">
+                            <button type="submit" class="btn-success px-4 py-1">添加商品</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加商品模态框 -->
+    <div id="addProductModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden">
+        <div class="flex items-center justify-center min-h-screen">
+            <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+                <h3 class="text-lg font-semibold mb-4">添加商品</h3>
+                <form id="addProductForm">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">商品名称</label>
+                        <input type="text" name="name" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">分类</label>
+                        <select name="category" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                            <option value="">选择分类</option>
+                            <option value="彩妆">彩妆</option>
+                            <option value="护肤">护肤</option>
+                            <option value="香水">香水</option>
+                            <option value="美妆工具">美妆工具</option>
+                            <option value="男士美妆">男士美妆</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">价格</label>
+                        <input type="number" name="price" step="0.01" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">库存</label>
+                        <input type="number" name="stock" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">图片URL</label>
+                        <input type="text" name="image" required class="w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="images/xxx.jpg">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">描述</label>
+                        <textarea name="description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md"></textarea>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">品牌</label>
+                        <input type="text" name="brand" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">产地</label>
+                        <input type="text" name="origin" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">保质期</label>
+                        <input type="text" name="shelf_life" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">净含量</label>
+                        <input type="text" name="net_weight" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">成分</label>
+                        <textarea name="ingredients" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-md"></textarea>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">使用方法</label>
+                        <textarea name="usage" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-md"></textarea>
+                    </div>
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" onclick="closeAddProductModal()" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-md">
+                            取消
+                        </button>
+                        <button type="submit" class="btn-success">
+                            添加商品
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑商品模态框 -->
+    <div id="editProductModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden">
+        <div class="flex items-center justify-center min-h-screen">
+            <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+                <h3 class="text-lg font-semibold mb-4">编辑商品</h3>
+                <form id="editProductForm">
+                    <input type="hidden" name="product_id" id="edit_product_id">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">商品名称</label>
+                        <input type="text" name="name" id="edit_name" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">分类</label>
+                        <select name="category" id="edit_category" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                            <option value="">选择分类</option>
+                            <option value="彩妆">彩妆</option>
+                            <option value="护肤">护肤</option>
+                            <option value="香水">香水</option>
+                            <option value="美妆工具">美妆工具</option>
+                            <option value="男士美妆">男士美妆</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">价格</label>
+                        <input type="number" name="price" id="edit_price" step="0.01" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">库存</label>
+                        <input type="number" name="stock" id="edit_stock" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">图片URL</label>
+                        <input type="text" name="image" id="edit_image" required class="w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="images/xxx.jpg">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">描述</label>
+                        <textarea name="description" id="edit_description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md"></textarea>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">品牌</label>
+                        <input type="text" name="brand" id="edit_brand" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">产地</label>
+                        <input type="text" name="origin" id="edit_origin" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">保质期</label>
+                        <input type="text" name="shelf_life" id="edit_shelf_life" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">净含量</label>
+                        <input type="text" name="net_weight" id="edit_net_weight" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">成分</label>
+                        <textarea name="ingredients" id="edit_ingredients" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-md"></textarea>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">使用方法</label>
+                        <textarea name="usage" id="edit_usage" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-md"></textarea>
+                    </div>
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" onclick="closeEditProductModal()" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-md">
+                            取消
+                        </button>
+                        <button type="submit" class="btn-primary">
+                            更新商品
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 修改库存模态框 -->
+    <div id="editStockModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden">
+        <div class="flex items-center justify-center min-h-screen">
+            <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+                <h3 class="text-lg font-semibold mb-4">修改库存</h3>
+                <form id="editStockForm">
+                    <input type="hidden" name="product_id" id="edit_stock_product_id">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">库存</label>
+                        <input type="number" name="stock" id="edit_stock_value" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    </div>
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" onclick="closeEditStockModal()" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-md">取消</button>
+                        <button type="submit" class="btn-primary">保存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- 修改价格模态框 -->
+    <div id="editPriceModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden">
+        <div class="flex items-center justify-center min-h-screen">
+            <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+                <h3 class="text-lg font-semibold mb-4">修改价格</h3>
+                <form id="editPriceForm">
+                    <input type="hidden" name="product_id" id="edit_price_product_id">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">价格</label>
+                        <input type="number" name="price" id="edit_price_value" step="0.01" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    </div>
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" onclick="closeEditPriceModal()" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-md">取消</button>
+                        <button type="submit" class="btn-primary">保存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openAddProductModal() {
+            document.getElementById('addProductModal').classList.remove('hidden');
+        }
+
+        function closeAddProductModal() {
+            document.getElementById('addProductModal').classList.add('hidden');
+            document.getElementById('addProductForm').reset();
+        }
+
+        function openEditProductModal() {
+            document.getElementById('editProductModal').classList.remove('hidden');
+        }
+
+        function closeEditProductModal() {
+            document.getElementById('editProductModal').classList.add('hidden');
+        }
+
+        function editProduct(productId) {
+            // 获取商品信息
+            fetch(`/admin/get_product/${productId}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        const product = data.product;
+                        // 填充表单
+                        document.getElementById('edit_product_id').value = product.id;
+                        document.getElementById('edit_name').value = product.name;
+                        document.getElementById('edit_category').value = product.category;
+                        document.getElementById('edit_price').value = product.price;
+                        document.getElementById('edit_stock').value = product.stock;
+                        document.getElementById('edit_image').value = product.image;
+                        document.getElementById('edit_description').value = product.description || '';
+                        document.getElementById('edit_brand').value = product.brand || '';
+                        document.getElementById('edit_origin').value = product.origin || '';
+                        document.getElementById('edit_shelf_life').value = product.shelf_life || '';
+                        document.getElementById('edit_net_weight').value = product.net_weight || '';
+                        document.getElementById('edit_ingredients').value = product.ingredients || '';
+                        document.getElementById('edit_usage').value = product.usage || '';
+                        
+                        openEditProductModal();
+                    } else {
+                        alert(data.message || '获取商品信息失败');
+                    }
+                })
+                .catch(error => {
+                    console.error('获取商品信息失败:', error);
+                    alert('获取商品信息失败，请重试');
+                });
+        }
+
+        function deleteProduct(productId) {
+            if (confirm('确定要删除这个商品吗？')) {
+                fetch(`/admin/delete_product/${productId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert('商品删除成功');
+                        location.reload();
+                    } else {
+                        alert(data.message || '删除失败');
+                    }
+                })
+                .catch(error => {
+                    console.error('删除失败:', error);
+                    alert('删除失败，请重试');
+                });
+            }
+        }
+
+        function editStock(productId) {
+            fetch(`/admin/get_product/${productId}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        document.getElementById('edit_stock_product_id').value = data.product.id;
+                        document.getElementById('edit_stock_value').value = data.product.stock;
+                        document.getElementById('editStockModal').classList.remove('hidden');
+                    } else {
+                        alert(data.message || '获取商品信息失败');
+                    }
+                });
+        }
+        function closeEditStockModal() {
+            document.getElementById('editStockModal').classList.add('hidden');
+        }
+        document.getElementById('editStockForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const productId = document.getElementById('edit_stock_product_id').value;
+            const stock = document.getElementById('edit_stock_value').value;
+            fetch(`/admin/edit_stock/${productId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ stock })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert('库存修改成功');
+                    closeEditStockModal();
+                    location.reload();
+                } else {
+                    alert(data.message || '修改失败');
+                }
+            });
+        });
+        function editPrice(productId) {
+            fetch(`/admin/get_product/${productId}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        document.getElementById('edit_price_product_id').value = data.product.id;
+                        document.getElementById('edit_price_value').value = data.product.price;
+                        document.getElementById('editPriceModal').classList.remove('hidden');
+                    } else {
+                        alert(data.message || '获取商品信息失败');
+                    }
+                });
+        }
+        function closeEditPriceModal() {
+            document.getElementById('editPriceModal').classList.add('hidden');
+        }
+        document.getElementById('editPriceForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const productId = document.getElementById('edit_price_product_id').value;
+            const price = document.getElementById('edit_price_value').value;
+            fetch(`/admin/edit_price/${productId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ price })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert('价格修改成功');
+                    closeEditPriceModal();
+                    location.reload();
+                } else {
+                    alert(data.message || '修改失败');
+                }
+            });
+        });
+
+        document.getElementById('addProductForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData.entries());
+            
+            console.log('提交的数据:', data);
+            
+            fetch('/admin/add_product', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(res => {
+                console.log('响应状态:', res.status);
+                return res.json();
+            })
+            .then(data => {
+                console.log('响应数据:', data);
+                if (data.status === 'success') {
+                    alert('商品添加成功');
+                    closeAddProductModal();
+                    location.reload();
+                } else {
+                    alert(data.message || '添加失败');
+                }
+            })
+            .catch(error => {
+                console.error('添加失败:', error);
+                alert('添加失败，请重试');
+            });
+        });
+
+        document.getElementById('editProductForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData.entries());
+            const productId = data.product_id;
+            delete data.product_id; // 移除product_id，因为它在URL中
+            
+            console.log('编辑提交的数据:', data);
+            console.log('商品ID:', productId);
+            
+            fetch(`/admin/edit_product/${productId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(res => {
+                console.log('编辑响应状态:', res.status);
+                return res.json();
+            })
+            .then(data => {
+                console.log('编辑响应数据:', data);
+                if (data.status === 'success') {
+                    alert('商品更新成功');
+                    closeEditProductModal();
+                    location.reload();
+                } else {
+                    alert(data.message || '更新失败');
+                }
+            })
+            .catch(error => {
+                console.error('更新失败:', error);
+                alert('更新失败，请重试');
+            });
+        });
+
+        document.getElementById('saveAllBtn').onclick = function() {
+            const rows = document.querySelectorAll('tbody tr[data-product-id]');
+            const updates = [];
+            let valid = true;
+            rows.forEach(row => {
+                const id = row.getAttribute('data-product-id');
+                const priceInput = row.querySelector('.price-input');
+                const stockInput = row.querySelector('.stock-input');
+                const price = parseFloat(priceInput.value);
+                const stock = parseInt(stockInput.value);
+                if (isNaN(price) || price < 0) {
+                    alert('价格不能为负数');
+                    priceInput.focus();
+                    valid = false;
+                    return;
+                }
+                if (isNaN(stock) || stock < 0) {
+                    alert('库存不能为负数');
+                    stockInput.focus();
+                    valid = false;
+                    return;
+                }
+                updates.push({ id, price, stock });
+            });
+            if (!valid) return;
+            fetch('/admin/batch_update_products', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ updates })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert('保存成功');
+                    location.reload();
+                } else {
+                    alert(data.message || '保存失败');
+                }
+            });
+        };
+    </script>
+</body>
+</html> 

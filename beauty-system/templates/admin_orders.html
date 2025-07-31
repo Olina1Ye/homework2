@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.2/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <title>订单管理 - 后台管理系统</title>
+    <style>
+        .sidebar {
+            background: #1f2937;
+            min-height: 100vh;
+            width: 250px;
+            position: fixed;
+            left: 0;
+            top: 0;
+        }
+        .main-content {
+            margin-left: 250px;
+            min-height: 100vh;
+            background: #f8fafc;
+        }
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: #d1d5db;
+            text-decoration: none;
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+        }
+        .nav-link:hover {
+            background: #374151;
+            color: white;
+            border-left-color: #3b82f6;
+        }
+        .nav-link.active {
+            background: #374151;
+            color: white;
+            border-left-color: #3b82f6;
+        }
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e5e7eb;
+        }
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+        .btn-success {
+            background: #10b981;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .btn-success:hover {
+            background: #059669;
+        }
+        .btn-warning {
+            background: #f59e0b;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .btn-warning:hover {
+            background: #d97706;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- 侧边栏 -->
+    <div class="sidebar">
+        <div class="p-6">
+            <h1 class="text-white text-xl font-bold">后台管理系统</h1>
+        </div>
+        <nav class="mt-6">
+            <a href="{{ url_for('admin_dashboard') }}" class="nav-link">
+                仪表板
+            </a>
+            <a href="{{ url_for('admin_products') }}" class="nav-link">
+                商品管理
+            </a>
+            <a href="{{ url_for('admin_orders') }}" class="nav-link active">
+                订单管理
+            </a>
+            <a href="{{ url_for('admin_users') }}" class="nav-link">
+                用户管理
+            </a>
+            <!-- 分类管理菜单项已移除 -->
+            <a href="{{ url_for('index') }}" class="nav-link">
+                返回前台
+            </a>
+        </nav>
+    </div>
+
+    <!-- 主内容区域 -->
+    <div class="main-content">
+        <!-- 顶部导航 -->
+        <div class="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
+            <div class="flex justify-between items-center">
+                <h2 class="text-2xl font-bold text-gray-800">订单管理</h2>
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-600">欢迎，{{ session.username }}</span>
+                    <a href="{{ url_for('logout') }}" class="text-red-500 hover:text-red-700">
+                        <i class="fa fa-sign-out mr-1"></i>退出
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 订单列表 -->
+        <div class="p-6">
+            <div class="table-container">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-800">订单列表</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">订单ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">用户</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">收货人</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">金额</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">状态</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">创建时间</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            {% for order in orders %}
+                            <tr>
+                                <td class="px-6 py-4 text-sm text-gray-900">#{{ order.id }}</td>
+                                <td class="px-6 py-4 text-sm text-gray-900">{{ order.user.username }}</td>
+                                <td class="px-6 py-4 text-sm text-gray-900">{{ order.recipient }}</td>
+                                <td class="px-6 py-4 text-sm text-gray-900">¥{{ "%.2f"|format(order.total_amount) }}</td>
+                                <td class="px-6 py-4">
+                                    {% if order.status == 'completed' %}
+                                        <span class="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+                                            已完成
+                                        </span>
+                                    {% elif order.status == 'pending' %}
+                                        <span class="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
+                                            待处理
+                                        </span>
+                                    {% else %}
+                                        <span class="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full">
+                                            已取消
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-900">{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td class="px-6 py-4 text-sm text-gray-900">
+                                    <button onclick="viewOrderDetails({{ order.id }})" class="btn-primary mr-2">
+                                        <i class="fa fa-eye mr-1"></i>查看
+                                    </button>
+                                    {% if order.status == 'pending' %}
+                                    <button onclick="updateOrderStatus({{ order.id }}, 'completed')" class="btn-success mr-2">
+                                        <i class="fa fa-check mr-1"></i>完成
+                                    </button>
+                                    <button onclick="updateOrderStatus({{ order.id }}, 'cancelled')" class="btn-warning">
+                                        <i class="fa fa-times mr-1"></i>取消
+                                    </button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function viewOrderDetails(orderId) {
+            // 实现查看订单详情功能
+            alert('查看订单详情功能待实现');
+        }
+
+        function updateOrderStatus(orderId, status) {
+            if (confirm(`确定要${status === 'completed' ? '完成' : '取消'}这个订单吗？`)) {
+                fetch(`/admin/update_order_status/${orderId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({ status: status })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert('订单状态更新成功');
+                        location.reload();
+                    } else {
+                        alert(data.message || '更新失败');
+                    }
+                })
+                .catch(error => {
+                    console.error('更新失败:', error);
+                    alert('更新失败，请重试');
+                });
+            }
+        }
+    </script>
+</body>
+</html> 

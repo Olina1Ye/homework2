@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.2/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <title>购物车 - 美妆商城</title>
+    <style>
+        .cart-item-image {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .cart-item {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+            border: 1px solid #f3f4f6;
+            transition: all 0.3s ease;
+        }
+        .cart-item:hover {
+            box-shadow: 0 12px 32px rgba(0,0,0,0.12);
+            transform: translateY(-2px);
+        }
+        .product-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+        .product-price {
+            font-size: 18px;
+            font-weight: 600;
+            color: #ec4899;
+            margin-bottom: 16px;
+        }
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            overflow: hidden;
+            background: white;
+        }
+        .quantity-btn {
+            padding: 12px 16px;
+            background: #f8fafc;
+            border: none;
+            cursor: pointer;
+            font-weight: 700;
+            color: #374151;
+            min-width: 48px;
+            font-size: 16px;
+        }
+        .quantity-btn:hover {
+            background: #e5e7eb;
+        }
+        .quantity-input {
+            width: 80px;
+            text-align: center;
+            border: none;
+            padding: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            background: white;
+        }
+        .subtotal {
+            font-size: 20px;
+            font-weight: 800;
+            color: #059669;
+            min-width: 120px;
+            text-align: right;
+        }
+        .delete-btn {
+            color: #ef4444;
+            background: #fef2f2;
+            border: 2px solid #fecaca;
+            padding: 12px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .delete-btn:hover {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        .cart-container {
+            background: #f8fafc;
+            min-height: 100vh;
+            padding: 40px 0;
+        }
+        .cart-content {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .cart-header {
+            background: #1f2937;
+            color: white;
+            padding: 32px 40px;
+            font-size: 28px;
+            font-weight: 800;
+            text-align: center;
+        }
+        .cart-body {
+            padding: 40px;
+        }
+        .cart-summary {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 32px;
+            margin-top: 32px;
+            border: 2px solid #e5e7eb;
+        }
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .summary-total {
+            font-size: 24px;
+            font-weight: 800;
+            color: #059669;
+            border-top: 3px solid #e5e7eb;
+            padding-top: 16px;
+            margin-top: 16px;
+        }
+        .checkout-btn {
+            background: #10b981;
+            color: white;
+            padding: 20px 40px;
+            border-radius: 12px;
+            border: none;
+            font-size: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 24px;
+            transition: all 0.3s ease;
+        }
+        .checkout-btn:hover {
+            background: #059669;
+            transform: translateY(-2px);
+        }
+        .continue-shopping {
+            background: #f59e0b;
+            color: white;
+            padding: 16px 32px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 16px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        .empty-cart {
+            text-align: center;
+            padding: 80px 40px;
+        }
+        .empty-cart h3 {
+            font-size: 28px;
+            margin-bottom: 16px;
+            color: #374151;
+            font-weight: 700;
+        }
+        .empty-cart p {
+            font-size: 18px;
+            margin-bottom: 32px;
+            color: #6b7280;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+            padding: 16px 32px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 18px;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            background: #5a67d8;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- 顶部导航栏 -->
+    <nav class="bg-white shadow-lg">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="{{ url_for('index') }}" class="text-2xl font-bold text-pink-500">美妆商城</a>
+            <div class="flex items-center space-x-6">
+                <a href="{{ url_for('index') }}" class="px-4 py-2 text-gray-700 hover:text-pink-500 transition">首页</a>
+                <a href="{{ url_for('index', category='all') }}" class="px-4 py-2 text-gray-700 hover:text-pink-500 transition">分类</a>
+                <a href="{{ url_for('cart') }}" class="px-4 py-2 text-pink-500 font-semibold">
+                    <i class="fa fa-shopping-cart mr-2"></i> 购物车
+                </a>
+                {% if 'user_id' in session %}
+                    <a href="#" class="px-4 py-2 text-gray-700 hover:text-pink-500 transition">欢迎，{{ session['username'] }}</a>
+                    <a href="{{ url_for('logout') }}" class="px-4 py-2 text-red-500 hover:text-red-700 transition">退出</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="px-4 py-2 text-gray-700 hover:text-pink-500 transition">登录</a>
+                    <a href="{{ url_for('register') }}" class="px-4 py-2 text-green-500 hover:text-green-700 transition">注册</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主体内容 -->
+    <div class="cart-container">
+        <div class="container mx-auto px-6">
+            <div class="cart-content">
+                <div class="cart-header">
+                    <i class="fa fa-shopping-cart mr-3"></i>
+                    我的购物车
+                </div>
+                
+                <div class="cart-body">
+                    {% if cart_items %}
+                    <div class="space-y-6">
+                        {% for item in cart_items %}
+                        <div class="cart-item">
+                            <div class="flex items-center gap-6">
+                                <!-- 左侧：商品图片 -->
+                                <img src="{{ url_for('static', filename=item.product.image) }}" alt="{{ item.product.name }}" class="cart-item-image">
+                                
+                                <!-- 右侧：所有商品信息和操作水平排列 -->
+                                <div class="flex-1 flex items-center justify-between gap-8">
+                                    <!-- 商品基本信息 -->
+                                    <div class="text-left">
+                                        <h3 class="product-name">{{ item.product.name }}</h3>
+                                        <p class="product-price">¥{{ "%.2f"|format(item.product.price) }}</p>
+                                    </div>
+                                    
+                                    <!-- 数量控制 -->
+                                    <div class="quantity-controls">
+                                        <button onclick="updateQuantity({{ item.id }}, -1)" class="quantity-btn">-</button>
+                                        <input type="number" value="{{ item.quantity }}" min="1" 
+                                               class="quantity-input" 
+                                               onchange="updateQuantity({{ item.id }}, this.value - {{ item.quantity }})">
+                                        <button onclick="updateQuantity({{ item.id }}, 1)" class="quantity-btn">+</button>
+                                    </div>
+                                    
+                                    <!-- 小计价格 -->
+                                    <div class="subtotal">
+                                        ¥{{ "%.2f"|format(item.product.price * item.quantity) }}
+                                    </div>
+                                    
+                                    <!-- 删除按钮 -->
+                                    <button onclick="removeFromCart({{ item.id }})" class="delete-btn">
+                                        <i class="fa fa-trash"></i> 删除
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- 结算区域 -->
+                    <div class="cart-summary">
+                        <div class="summary-row">
+                            <span>商品总数：</span>
+                            <span class="font-semibold">{{ cart_items|length }} 件</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>商品总价：</span>
+                            <span class="font-semibold">¥{{ "%.2f"|format(total_price) }}</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>运费：</span>
+                            <span class="font-semibold text-green-600">免运费</span>
+                        </div>
+                        <div class="summary-total">
+                            <span>总计：</span>
+                            <span class="text-green-600">¥{{ "%.2f"|format(total_price) }}</span>
+                        </div>
+                        
+                        <div class="flex gap-4 mt-6">
+                            <a href="{{ url_for('index') }}" class="continue-shopping flex-1 text-center">
+                                <i class="fa fa-arrow-left"></i>
+                                继续购物
+                            </a>
+                            <button onclick="goToCheckout()" class="checkout-btn">
+                                <i class="fa fa-credit-card mr-2"></i>
+                                立即结算
+                            </button>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="empty-cart">
+                        <i class="fa fa-shopping-cart text-gray-300 text-8xl mb-6"></i>
+                        <h3>购物车是空的</h3>
+                        <p>快去添加喜欢的商品吧！</p>
+                        <a href="{{ url_for('index') }}" class="btn-primary">
+                            <i class="fa fa-shopping-bag mr-2"></i>
+                            浏览商品
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 更新购物车商品数量
+        function updateQuantity(itemId, change) {
+            fetch(`/update_cart/${itemId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ change: change })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    window.location.reload();
+                } else {
+                    alert(data.message || '更新数量失败');
+                }
+            })
+            .catch(error => {
+                console.error('更新数量失败:', error);
+                alert('更新数量失败，请重试');
+            });
+        }
+
+        // 从购物车移除商品
+        function removeFromCart(itemId) {
+            if (confirm('确定要从购物车中移除这件商品吗？')) {
+                fetch(`/remove_from_cart/${itemId}`, { 
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        window.location.reload();
+                    } else {
+                        alert(data.message || '删除商品失败');
+                    }
+                })
+                .catch(error => {
+                    console.error('删除商品失败:', error);
+                    alert('删除商品失败，请重试');
+                });
+            }
+        }
+
+        // 前往结算页面
+        function goToCheckout() {
+            window.location.href = '/cart_checkout';
+        }
+    </script>
+</body>
+</html> 

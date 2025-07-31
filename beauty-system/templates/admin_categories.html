@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.2/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <title>分类管理 - 后台管理系统</title>
+    <style>
+        .sidebar {
+            background: #1f2937;
+            min-height: 100vh;
+            width: 250px;
+            position: fixed;
+            left: 0;
+            top: 0;
+        }
+        .main-content {
+            margin-left: 250px;
+            min-height: 100vh;
+            background: #f8fafc;
+        }
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: #d1d5db;
+            text-decoration: none;
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+        }
+        .nav-link:hover {
+            background: #374151;
+            color: white;
+            border-left-color: #3b82f6;
+        }
+        .nav-link.active {
+            background: #374151;
+            color: white;
+            border-left-color: #3b82f6;
+        }
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e5e7eb;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- 侧边栏 -->
+    <div class="sidebar">
+        <div class="p-6">
+            <h1 class="text-white text-xl font-bold">后台管理系统</h1>
+        </div>
+        <nav class="mt-6">
+            <a href="{{ url_for('admin_dashboard') }}" class="nav-link">
+                仪表板
+            </a>
+            <a href="{{ url_for('admin_products') }}" class="nav-link">
+                商品管理
+            </a>
+            <a href="{{ url_for('admin_orders') }}" class="nav-link">
+                订单管理
+            </a>
+            <a href="{{ url_for('admin_users') }}" class="nav-link">
+                用户管理
+            </a>
+            <a href="{{ url_for('admin_categories') }}" class="nav-link active">
+                分类管理
+            </a>
+            <a href="{{ url_for('index') }}" class="nav-link">
+                返回前台
+            </a>
+        </nav>
+    </div>
+
+    <!-- 主内容区域 -->
+    <div class="main-content">
+        <!-- 顶部导航 -->
+        <div class="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
+            <div class="flex justify-between items-center">
+                <h2 class="text-2xl font-bold text-gray-800">分类管理</h2>
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-600">欢迎，{{ session.username }}</span>
+                    <a href="{{ url_for('logout') }}" class="text-red-500 hover:text-red-700">
+                        <i class="fa fa-sign-out mr-1"></i>退出
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 分类列表 -->
+        <div class="p-6">
+            <div class="table-container">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-800">分类列表</h3>
+                </div>
+                <div class="p-6 text-center text-gray-500">
+                    <i class="fa fa-tags text-4xl mb-4"></i>
+                    <p>分类管理功能正在开发中...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>注册 - 美妆产品服务系统</title>
+    <style>
+        /* 保持原有样式 */
+        body { font-family: Arial, sans-serif; max-width: 400px; margin: 50px auto; padding: 20px; }
+        .container { border: 1px solid #ddd; padding: 30px; border-radius: 5px; }
+        h1 { text-align: center; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; }
+        input { width: 100%; padding: 8px; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; background-color: #457b9d; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background-color: #1d3557; }
+        .link { text-align: center; margin-top: 15px; }
+        a { color: #457b9d; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>用户注册</h1>
+        <form method="post">
+            <!-- 添加CSRF令牌字段 -->
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            
+            <div class="form-group">
+                <label for="username">用户名</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">密码</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit">注册</button>
+        </form>
+        <div class="link">
+            已有账号？<a href="{{ url_for('login') }}">立即登录</a>
+        </div>
+    </div>
+</body>
+</html>
