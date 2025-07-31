@@ -225,24 +225,6 @@ python app.py
 ```bash
 pip install gunicorn
 gunicorn -w 4 -b 0.0.0.0:5000 app:app
-```
-
-## 📝 更新日志
-
-### v1.0.0
-- 初始版本发布
-- 完整的电商功能
-- 管理员后台
-- 用户评论系统
-
-## 🤝 贡献指南
-
-1. Fork 项目
-2. 创建功能分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 打开 Pull Request
-
 ---
 
 **注意**: 这是一个演示项目，生产环境使用前请确保：
